@@ -2,17 +2,16 @@ package main
 
 import (
 	"log"
+	"sweetake/config"
 	"sweetake/router"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
+	// load .env
+	config.LoadEnv()
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+
+	// router
 	r := router.Router()
 	log.Println("Server running at http://localhost:8080")
 	r.Run(":8080")
