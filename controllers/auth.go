@@ -79,7 +79,7 @@ func Register(c *gin.Context) {
 	}
 
 	// Hash password
-	hashed, _ := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	hash, _ := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 
 	// Save user
 	usersMutex.Lock()
@@ -87,7 +87,7 @@ func Register(c *gin.Context) {
 		ID:       userID,
 		Username: input.Username,
 		Email:    input.Email,
-		Password: string(hashed),
+		Password: string(hash),
 	}
 	userID++
 	users = append(users, newUser)
