@@ -27,9 +27,10 @@ func Register(c *gin.Context) {
 	var input models.RegisterRequest
 
 	// if error
-	if err := c.ShouldBindJSON(&input); err != nil {
+	err := c.ShouldBindJSON(&input);
+	if err != nil {
 
-		// Handle validation errors
+		// handle validation errors
 		var ve validator.ValidationErrors
 		if errors.As(err, &ve) {
 			out := make([]string, len(ve))
