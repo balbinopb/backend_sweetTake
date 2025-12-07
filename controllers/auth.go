@@ -1,96 +1,68 @@
 package controllers
 
 import (
-	"errors"
 	"net/http"
-	"strings"
+
 	"sweetake/models"
+	"sweetake/database"
 	"sweetake/utils"
-	"sync"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
-
-// memory storage just temporary
-var (
-	users      = []models.User{}
-	userID     = 1
-	usersMutex sync.Mutex
-)
-
-// --- CONTROLLERS ---
 
 // REGISTER
 func Register(c *gin.Context) {
 	var input models.RegisterRequest
 
-	// if error
 	if err := c.ShouldBindJSON(&input); err != nil {
-
-		// Handle validation errors
-		var ve validator.ValidationErrors
-		if errors.As(err, &ve) {
-			out := make([]string, len(ve))
-			for i, fe := range ve {
-				field := fe.Field()
-				tag := fe.Tag()
-				switch field {
-				case "Username":
-					out[i] = "Username is required"
-				case "Email":
-					switch tag {
-					case "required":
-						out[i] = "Email is required"
-					case "email":
-						out[i] = "Invalid email format"
-					}
-				case "Password":
-					switch tag {
-					case "required":
-						out[i] = "Password is required"
-					case "min":
-						out[i] = "Password must be at least 6 characters long"
-					}
-				default:
-					out[i] = fe.Error()
-				}
-			}
-			c.JSON(http.StatusBadRequest, gin.H{"error": strings.Join(out, ", ")})
-			return
-		}
-
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Check duplicates
-	for _, u := range users {
-		if u.Username == input.Username {
-			c.JSON(http.StatusConflict, gin.H{"error": "username already exists"})
-			return
-		}
-		if u.Email == input.Email {
-			c.JSON(http.StatusConflict, gin.H{"error": "email already exists"})
-			return
-		}
+	// duplicate check
+	var existing models.User
+	if err := database.DB.Where("email = ? OR username = ?", input.Email, input.Username).
+		First(&existing).Error; err == nil {
+
+		c.JSON(http.StatusConflict, gin.H{"error": "username or email already exists"})
+		return
 	}
 
-	// Hash password
-	hashed, _ := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
-
-	// Save user
-	usersMutex.Lock()
-	newUser := models.User{
-		ID:       userID,
-		Username: input.Username,
-		Email:    input.Email,
-		Password: string(hashed),
+	// hash password
+	hashed, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to hash password"})
+		return
 	}
-	userID++
-	users = append(users, newUser)
-	usersMutex.Unlock()
+
+	// generate personal ID if empty
+	personalID := input.PersonalID
+	if personalID == "" {
+		personalID = "PID-" + uuid.New().String()
+	}
+
+	user := models.User{
+		PersonalID:   personalID,
+		Username:     input.Username,
+		PasswordHash: string(hashed),
+		Email:        input.Email,
+		FullName:     input.FullName,
+		Role:         models.RoleUser,
+
+		// Optional profile fields
+		DateOfBirth: input.DateOfBirth,
+		Weight:      input.Weight,
+		Height:      input.Height,
+		Gender:      input.Gender,
+		ContactInfo: input.ContactInfo,
+	}
+
+	if err := database.DB.Create(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create user"})
+		return
+	}
 
 	c.JSON(http.StatusCreated, gin.H{"message": "user registered successfully"})
 }
@@ -103,30 +75,29 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	var found *models.User
-	for _, u := range users {
-		if u.Email == input.Email {
-			found = &u
-			break
-		}
-	}
-
-	if found == nil {
+	var user models.User
+	if err := database.DB.Where("email = ?", input.Email).First(&user).Error; err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid email or password"})
 		return
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(found.Password), []byte(input.Password)); err != nil {
+	// CHECK PASSWORD
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(input.Password)); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid email or password"})
 		return
 	}
 
-	// Generate JWT
-	token, _ := utils.GenerateJWT(found.Email)
+	// GENERATE JWT
+	token, err := utils.GenerateJWT(user.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
-// protected to fetched/get
+// PROFILE (Protected)
 func Profile(c *gin.Context) {
 	claimsData, exists := c.Get("claims")
 	if !exists {
@@ -134,33 +105,26 @@ func Profile(c *gin.Context) {
 		return
 	}
 
-	claims, ok := claimsData.(*utils.Claims)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid claims type"})
-		return
-	}
+	claims := claimsData.(*utils.Claims)
 
-	email := claims.Email
-
-	// Find user by email
-	var found *models.User
-	for _, u := range users {
-		if u.Email == email {
-			found = &u
-			break
-		}
-	}
-
-	if found == nil {
+	var user models.User
+	if err := database.DB.Where("email = ?", claims.Email).First(&user).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Successfully",
+		"message": "success",
 		"user": gin.H{
-			"username": found.Username,
-			"email":    found.Email,
+			"username":      user.Username,
+			"email":         user.Email,
+			"fullname":      user.FullName,
+			"gender":        user.Gender,
+			"date_of_birth": user.DateOfBirth,
+			"height":        user.Height,
+			"weight":        user.Weight,
+			"contact_info":  user.ContactInfo,
+			"role":          user.Role,
 		},
 	})
 }
