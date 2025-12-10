@@ -26,7 +26,7 @@ func ConnectDB() *gorm.DB {
 		host = "localhost"
 		user = "postgres"
 		password = "postgres"
-		dbname = "quiz_db"
+		dbname = "sweettake_db"
 		port = "5432"
 	}
 

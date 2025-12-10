@@ -22,6 +22,15 @@ func Router() *gin.Engine {
 	auth.Use(middleware.JWTAuthMiddleware())
 	{
 		auth.GET("/profile", controllers.Profile)
+
+		auth.POST("/consumption", controllers.ConsumptionForm)
+		auth.GET("/consumption/:id", ) 
+		auth.GET("/consumptions", )
+
+		auth.POST("/bloodsugar", controllers.CreateBloodSugarMetric)
+		auth.GET("/bloodsugar/:id", controllers.GetBloodSugarMetric)
+		auth.GET("/bloodsugars", controllers.GetAllBloodSugarMetrics)
+
 	}
 
 	return r
