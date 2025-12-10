@@ -8,9 +8,11 @@ import (
 	"sweetake/utils"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
+
+
+
 
 // REGISTER
 func Register(c *gin.Context) {
@@ -31,33 +33,20 @@ func Register(c *gin.Context) {
 	}
 
 	// hash password
-	hashed, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to hash password"})
-		return
-	}
-
-	// generate personal ID if empty
-	personalID := input.PersonalID
-	if personalID == "" {
-		personalID = "PID-" + uuid.New().String()
-	}
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	input.Password = string(hashedPassword)
 
 	user := models.User{
-		PersonalID:   personalID,
-		Username:     input.Username,
-		PasswordHash: string(hashed),
-		Email:        input.Email,
-		FullName:     input.FullName,
-		Role:         models.RoleUser,
-
-		// Optional profile fields
-		DateOfBirth: input.DateOfBirth,
-		Weight:      input.Weight,
-		Height:      input.Height,
-		Gender:      input.Gender,
-		ContactInfo: input.ContactInfo,
-	}
+			Username:    input.Username,
+			Email:       input.Email,
+			Password:    string(hashedPassword),
+			FullName:    &input.FullName,
+			Gender:      input.Gender,
+			DateOfBirth: input.DateOfBirth,
+			Height:      input.Height,
+			Weight:      input.Weight,
+			ContactInfo: input.ContactInfo,
+		}
 
 	if err := database.DB.Create(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create user"})
@@ -65,6 +54,7 @@ func Register(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"message": "user registered successfully"})
+
 }
 
 // LOGIN
@@ -82,7 +72,7 @@ func Login(c *gin.Context) {
 	}
 
 	// CHECK PASSWORD
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(input.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid email or password"})
 		return
 	}
@@ -124,7 +114,6 @@ func Profile(c *gin.Context) {
 			"height":        user.Height,
 			"weight":        user.Weight,
 			"contact_info":  user.ContactInfo,
-			"role":          user.Role,
 		},
 	})
 }
