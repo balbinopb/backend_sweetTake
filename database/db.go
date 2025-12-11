@@ -11,7 +11,6 @@ import (
 
 var DB *gorm.DB
 
-
 // database connection
 func ConnectDB() *gorm.DB {
 	// load from environment variables
@@ -25,7 +24,7 @@ func ConnectDB() *gorm.DB {
 	if host == "" {
 		host = "localhost"
 		user = "postgres"
-		password = "postgres"
+		password = os.Getenv("password")
 		dbname = "sweettake_db"
 		port = "5432"
 	}
