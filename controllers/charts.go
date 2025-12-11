@@ -1,6 +1,6 @@
 // internal/analytics/charts.go
 
-package analytics
+package controllers
 
 import (
 	"encoding/json"

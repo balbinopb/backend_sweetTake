@@ -1,6 +1,6 @@
 //internal/analytics/metrics.go
 
-package analytics
+package controllers
 
 import (
 	"math"
