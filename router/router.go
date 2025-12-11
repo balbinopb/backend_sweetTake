@@ -24,13 +24,17 @@ func Router() *gin.Engine {
 		auth.GET("/profile", controllers.Profile)
 
 		auth.POST("/consumption", controllers.ConsumptionForm)
-		auth.GET("/consumption/:id", ) 
-		auth.GET("/consumptions", )
+		auth.GET("/consumption/:id")
+		auth.GET("/consumptions")
 
 		auth.POST("/bloodsugar", controllers.CreateBloodSugarMetric)
 		auth.GET("/bloodsugar/:id", controllers.GetBloodSugarMetric)
 		auth.GET("/bloodsugars", controllers.GetAllBloodSugarMetrics)
 
+		// chart snapshot endpoints
+		auth.POST("/charts/daily", controllers.CreateDailyConsumptionChart)
+		auth.POST("/charts/weekly", controllers.CreateWeeklyConsumptionChart)
+		auth.POST("/charts/monthly", controllers.CreateMonthlyConsumptionChart)
 	}
 
 	return r

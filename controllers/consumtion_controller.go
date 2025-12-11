@@ -1,3 +1,4 @@
+// controllers/consumtion_controller.go
 package controllers
 
 import (
@@ -33,7 +34,7 @@ func ConsumptionForm(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message":       "consumption recorded successfully",
+		"message":        "consumption recorded successfully",
 		"consumption_id": consumption.ConsumptionID,
 	})
 }
