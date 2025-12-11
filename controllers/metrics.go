@@ -33,15 +33,36 @@ func safeSugar(c models.Consumption) float64 {
 
 // Combine MeasureDate + MeasureTime into a single timestamp.
 // If MeasureTime is zero, fall back to MeasureDate.
+// measurementTimestamp parses MeasureDate + MeasureTime into a single time.Time.
+// If MeasureTime is empty, only date is used. If parsing fails, fallback to m.DateTime.
 func measurementTimestamp(m models.BloodSugarMetric) time.Time {
-	// If MeasureTime wasn't set, use MeasureDate directly.
-	if m.MeasureTime.IsZero() {
-		return m.MeasureDate
+	// If DateTime is already set by DB, prefer that.
+	if !m.DateTime.IsZero() {
+		return m.DateTime
 	}
+
+	// Parse MeasureDate: expected format "YYYY-MM-DD"
+	date, err := time.Parse("2006-01-02", m.MeasureDate)
+	if err != nil {
+		return time.Time{} // or time.Now(), depending on your logic
+	}
+
+	// If time string is empty → return just the date
+	if m.MeasureTime == "" {
+		return date
+	}
+
+	// Parse measure time "HH:MM"
+	t, err := time.Parse("15:04", m.MeasureTime)
+	if err != nil {
+		return date
+	}
+
+	// Combine date + time
 	return time.Date(
-		m.MeasureDate.Year(), m.MeasureDate.Month(), m.MeasureDate.Day(),
-		m.MeasureTime.Hour(), m.MeasureTime.Minute(), m.MeasureTime.Second(),
-		m.MeasureTime.Nanosecond(), m.MeasureDate.Location(),
+		date.Year(), date.Month(), date.Day(),
+		t.Hour(), t.Minute(), 0, 0,
+		time.Local, // or date.Location()
 	)
 }
 
