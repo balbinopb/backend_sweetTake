@@ -50,6 +50,8 @@ func Register(c *gin.Context) {
 			DateOfBirth: &parsedDOB,
 			Height:      input.Height,
 			Weight:      input.Weight,
+			MyPreference: input.Preference,
+			MyHealthGoal: input.HealthGoal,
 			ContactInfo: input.ContactInfo,
 		}
 
