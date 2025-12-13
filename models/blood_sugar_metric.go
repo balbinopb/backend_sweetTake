@@ -8,10 +8,8 @@ type BloodSugarMetric struct {
 
 	User User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 
-	MeasureDate string    `json:"measure_date"`
-	MeasureTime string    `json:"measure_time"`
-	DateTime    time.Time `json:"date_time"`
-	Value       float64   `json:"value"`
-	Context     string    `json:"context"`
-	CreatedAt   time.Time `json:"created_at"`
+	DateTime        time.Time `json:"date_time"`
+	BloodSugarData  float64   `json:"blood_sugar"`
+	Context         string    `json:"context"`
+	CreatedAt       time.Time `json:"created_at"`
 }
