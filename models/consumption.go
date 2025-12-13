@@ -11,6 +11,4 @@ type Consumption struct {
     SugarData     *float64  `json:"sugar_data"`
     Context       string    `json:"context"`
     CreatedAt     time.Time `json:"created_at"`
-
-    Graphs []Graph `gorm:"foreignKey:ConsumptionID"`
 }

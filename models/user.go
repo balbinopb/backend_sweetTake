@@ -5,13 +5,8 @@ import "time"
 type User struct {
     UserID       uint      `gorm:"primaryKey" json:"user_id"`
 
-    // PersonalID   string    `gorm:"unique;not null" json:"personal_id"`
-    Username     string    `gorm:"unique;not null" json:"username"`
-    Email        string    `gorm:"unique;not null" json:"email"`
-
-    
-    
     FullName    *string    `json:"full_name,omitempty"`
+    Email        string    `gorm:"unique;not null" json:"email"`
     Password    string     `json:"-" gorm:"size:255;not null"`
 
 
@@ -20,6 +15,9 @@ type User struct {
     Height       *float64   `json:"height,omitempty"`
     Weight       *float64   `json:"weight,omitempty"`
     ContactInfo  string     `json:"contact_info,omitempty"`
+
+    MyPreference  string     `json:"my_preference,omitempty"`
+    MyHealthGoal  string     `json:"my_health_goal,omitempty"`
 
     CreatedAt   time.Time `json:"created_at"`
     UpdatedAt   time.Time `json:"updated_at"`
