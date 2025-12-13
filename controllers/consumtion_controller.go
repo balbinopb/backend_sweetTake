@@ -11,15 +11,19 @@ import (
 func ConsumptionForm(c *gin.Context) {
 	var input models.Consumption
 
-	// Bind JSON input
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Create a new Consumption record
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
 	consumption := models.Consumption{
-		UserID:    input.UserID,
+		UserID:    userID.(uint),
 		DateTime:  input.DateTime,
 		Type:      input.Type,
 		Amount:    input.Amount,
@@ -33,7 +37,6 @@ func ConsumptionForm(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message":       "consumption recorded successfully",
-		"consumption_id": consumption.ConsumptionID,
+		"message": "consumption recorded successfully",
 	})
 }
