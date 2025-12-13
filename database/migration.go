@@ -8,10 +8,8 @@ import (
 func DBMigrate() {
 	err := DB.AutoMigrate(
 		&models.User{},
-		&models.Profile{},
 		&models.Consumption{},
 		&models.BloodSugarMetric{},
-		&models.Graph{},
 		&models.Recommendation{},
 	)
 
