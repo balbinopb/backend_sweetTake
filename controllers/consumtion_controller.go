@@ -9,7 +9,7 @@ import (
 )
 
 func ConsumptionForm(c *gin.Context) {
-	var input models.Consumption
+	var input models.ConsumptionRequest
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
