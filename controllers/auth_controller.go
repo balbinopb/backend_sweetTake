@@ -2,17 +2,15 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
-	"sweetake/models"
 	"sweetake/database"
+	"sweetake/models"
 	"sweetake/utils"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
-
-
-
 
 // REGISTER
 func Register(c *gin.Context) {
@@ -25,7 +23,7 @@ func Register(c *gin.Context) {
 
 	// duplicate check
 	var existing models.User
-	if err := database.DB.Where("email = ? OR username = ?", input.Email, input.Username).
+	if err := database.DB.Where("email = ? OR username = ?", input.Email, input.FullName).
 		First(&existing).Error; err == nil {
 
 		c.JSON(http.StatusConflict, gin.H{"error": "username or email already exists"})
@@ -36,15 +34,24 @@ func Register(c *gin.Context) {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	input.Password = string(hashedPassword)
 
+	parsedDOB, err := time.Parse(time.RFC3339, input.DateOfBirth)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "date_of_birth must be RFC3339",
+		})
+		return
+	}
+
 	user := models.User{
-			Username:    input.Username,
+			FullName:    &input.FullName,
 			Email:       input.Email,
 			Password:    string(hashedPassword),
-			FullName:    &input.FullName,
 			Gender:      input.Gender,
-			DateOfBirth: input.DateOfBirth,
+			DateOfBirth: &parsedDOB,
 			Height:      input.Height,
 			Weight:      input.Weight,
+			MyPreference: input.Preference,
+			MyHealthGoal: input.HealthGoal,
 			ContactInfo: input.ContactInfo,
 		}
 
@@ -107,9 +114,8 @@ func Profile(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "success",
 		"user": gin.H{
-			"username":      user.Username,
-			"email":         user.Email,
 			"fullname":      user.FullName,
+			"email":         user.Email,
 			"gender":        user.Gender,
 			"date_of_birth": user.DateOfBirth,
 			"height":        user.Height,
