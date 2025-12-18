@@ -33,3 +33,15 @@ type BloodSugarRequest struct {
 	BloodSugarData float64   `json:"blood_sugar"`
 	Context        string    `json:"context"`
 }
+
+
+
+
+type ForgotPasswordRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+type ResetPasswordRequest struct {
+	Token       string `json:"token" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required,min=6"`
+}
