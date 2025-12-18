@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"sweetake/database"
 	"sweetake/models"
-	"sweetake/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -59,18 +58,26 @@ func GetBloodSugarMetric(c *gin.Context) {
 
 // GET ALL BLOOD SUGAR METRICS FOR LOGGED-IN USER
 func GetAllBloodSugarMetrics(c *gin.Context) {
-	claimsData, exists := c.Get("claims")
+	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
-	claims := claimsData.(*utils.Claims)
+	
+	var bloodSugar []models.BloodSugarMetric
 
-	var metrics []models.BloodSugarMetric
-	if err := database.DB.Where("user_id = ?", claims.UserID).Order("date_time desc").Find(&metrics).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch metrics"})
+	if err := database.DB.
+		Where("user_id = ?", userID).
+		Order("date_time DESC").
+		Find(&bloodSugar).Error; err != nil {
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch blood sugar"})
 		return
 	}
 
-	c.JSON(http.StatusOK, metrics)
+	c.JSON(http.StatusOK, gin.H{
+		"data": bloodSugar,
+	})
 }
+
+

@@ -40,3 +40,28 @@ func ConsumptionForm(c *gin.Context) {
 		"message": "consumption recorded successfully",
 	})
 }
+
+
+func GetAllConsumptions(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	var consumptions []models.Consumption
+
+	if err := database.DB.
+		Where("user_id = ?", userID).
+		Order("date_time DESC").
+		Find(&consumptions).Error; err != nil {
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch consumptions"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": consumptions,
+	})
+}
+
