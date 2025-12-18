@@ -144,7 +144,7 @@ func ForgotPassword(c *gin.Context) {
 	}
 
 	// generate token
-	token := utils.GenerateRandomToken(32)
+	token := utils.GenerateRandomToken(2)
 	expiry := time.Now().Add(15 * time.Minute)
 
 	user.ResetToken = &token
