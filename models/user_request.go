@@ -45,3 +45,16 @@ type ResetPasswordRequest struct {
 	Token       string `json:"token" binding:"required"`
 	NewPassword string `json:"new_password" binding:"required,min=6"`
 }
+
+
+
+type UpdateProfileRequest struct {
+	FullName    *string  `json:"fullname"`
+	Gender      *string  `json:"gender"`
+	DateOfBirth *string  `json:"date_of_birth"`
+	Height      *float64 `json:"height"`
+	Weight      *float64 `json:"weight"`
+	Preference  *string  `json:"preference"`
+	HealthGoal  *string  `json:"health_goal"`
+	ContactInfo *string  `json:"phone_number"`
+}
