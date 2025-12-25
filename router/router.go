@@ -23,7 +23,8 @@ func Router() *gin.Engine {
 	auth := api.Group("/auth")
 	auth.Use(middleware.JWTAuthMiddleware())
 	{
-		auth.GET("/profile", controllers.Profile)
+		auth.GET("/profile", controllers.GetProfile)
+		auth.PATCH("/profile", controllers.UpdateProfile)
 
 		auth.POST("/consumption", controllers.ConsumptionForm)
 		auth.GET("/consumptions", controllers.GetAllConsumptions)

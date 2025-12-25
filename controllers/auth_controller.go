@@ -94,35 +94,40 @@ func Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
-// PROFILE (Protected)
-func Profile(c *gin.Context) {
-	claimsData, exists := c.Get("claims")
+// GET PROFILE (Protected)
+func GetProfile(c *gin.Context) {
+	userID, exists := c.Get("user_id")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "claims not found"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	claims := claimsData.(*utils.Claims)
-
 	var user models.User
-	if err := database.DB.Where("email = ?", claims.Email).First(&user).Error; err != nil {
+	if err := database.DB.
+		Where("user_id = ?", userID).
+		First(&user).Error; err != nil {
+
 		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "success",
-		"user": gin.H{
+		"data": gin.H{
+			"user_id":       user.UserID,
 			"fullname":      user.FullName,
 			"email":         user.Email,
 			"gender":        user.Gender,
 			"date_of_birth": user.DateOfBirth,
 			"height":        user.Height,
 			"weight":        user.Weight,
-			"contact_info":  user.ContactInfo,
+			"preference":    user.MyPreference,
+			"health_goal":   user.MyHealthGoal,
+			"phone_number":  user.ContactInfo,
 		},
 	})
 }
+
+
 
 func ForgotPassword(c *gin.Context) {
 	var input models.ForgotPasswordRequest
@@ -205,5 +210,73 @@ func ResetPassword(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "password reset successful",
+	})
+}
+
+// UPDATE PROFILE (Protected)
+func UpdateProfile(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	var input models.UpdateProfileRequest
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var user models.User
+	if err := database.DB.
+		Where("user_id = ?", userID).
+		First(&user).Error; err != nil {
+
+		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		return
+	}
+
+	// Update only provided fields
+	if input.FullName != nil {
+		user.FullName = input.FullName
+	}
+	if input.Gender != nil {
+		user.Gender = *input.Gender
+	}
+	if input.DateOfBirth != nil {
+		parsedDOB, err := time.Parse(time.RFC3339, *input.DateOfBirth)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "date_of_birth must be RFC3339",
+			})
+			return
+		}
+		user.DateOfBirth = &parsedDOB
+	}
+	if input.Height != nil {
+		user.Height = input.Height
+	}
+	if input.Weight != nil {
+		user.Weight = input.Weight
+	}
+	if input.Preference != nil {
+		user.MyPreference = *input.Preference
+	}
+	if input.HealthGoal != nil {
+		user.MyHealthGoal = *input.HealthGoal
+	}
+	if input.ContactInfo != nil {
+		user.ContactInfo = *input.ContactInfo
+	}
+
+	if err := database.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to update profile",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "profile updated successfully",
 	})
 }
