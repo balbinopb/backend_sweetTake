@@ -41,7 +41,6 @@ func ConsumptionForm(c *gin.Context) {
 	})
 }
 
-
 func GetAllConsumptions(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
@@ -65,3 +64,36 @@ func GetAllConsumptions(c *gin.Context) {
 	})
 }
 
+func DeleteConsumption(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	id := c.Param("id")
+
+	var consumption models.Consumption
+
+	// Make sure the data belongs to the logged-in user
+	if err := database.DB.
+		Where("id = ? AND user_id = ?", id, userID).
+		First(&consumption).Error; err != nil {
+
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "consumption not found",
+		})
+		return
+	}
+
+	if err := database.DB.Delete(&consumption).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to delete consumption",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "consumption deleted successfully",
+	})
+}
