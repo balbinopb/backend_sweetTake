@@ -75,9 +75,8 @@ func DeleteConsumption(c *gin.Context) {
 
 	var consumption models.Consumption
 
-	// Make sure the data belongs to the logged-in user
 	if err := database.DB.
-		Where("id = ? AND user_id = ?", id, userID).
+		Where("consumption_id = ? AND user_id = ?", id, userID).
 		First(&consumption).Error; err != nil {
 
 		c.JSON(http.StatusNotFound, gin.H{
@@ -97,3 +96,4 @@ func DeleteConsumption(c *gin.Context) {
 		"message": "consumption deleted successfully",
 	})
 }
+
