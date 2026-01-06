@@ -34,7 +34,7 @@ func Router() *gin.Engine {
 		auth.POST("/bloodsugar", controllers.CreateBloodSugarMetric)
 		// auth.GET("/bloodsugar/:id", controllers.GetBloodSugarMetric)
 		auth.GET("/bloodsugars", controllers.GetAllBloodSugarMetrics)
-		auth.DELETE("/blood-sugars/:id", controllers.DeleteBloodSugarMetric)
+		auth.DELETE("/bloodsugars/:id", controllers.DeleteBloodSugarMetric)
 
 
 	}
