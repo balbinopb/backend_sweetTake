@@ -10,7 +10,6 @@ func DBMigrate() {
 		&models.User{},
 		&models.Consumption{},
 		&models.BloodSugarMetric{},
-		&models.Recommendation{},
 	)
 
 	if err != nil {
