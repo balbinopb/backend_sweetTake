@@ -28,6 +28,7 @@ func Router() *gin.Engine {
 
 		auth.POST("/consumption", controllers.ConsumptionForm)
 		auth.GET("/consumptions", controllers.GetAllConsumptions)
+		auth.DELETE("/consumptions/:id", controllers.DeleteConsumption)
 		// auth.GET("/consumption/:id", )
 
 		auth.POST("/bloodsugar", controllers.CreateBloodSugarMetric)
