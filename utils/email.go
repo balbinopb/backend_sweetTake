@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"os"
 )
@@ -63,8 +65,14 @@ func SendResetEmail(email, token string) error {
 	}
 	defer resp.Body.Close()
 
+	bodyBytes, _ := io.ReadAll(resp.Body)
+
 	if resp.StatusCode >= 400 {
-		return errors.New("failed to send email")
+		return fmt.Errorf(
+			"resend error (%d): %s",
+			resp.StatusCode,
+			string(bodyBytes),
+		)
 	}
 
 	return nil
