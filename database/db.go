@@ -12,8 +12,13 @@ var DB *gorm.DB
 
 func ConnectDB() *gorm.DB {
 	databaseURL := os.Getenv("DATABASE_URL")
+
+	// Local development 
 	if databaseURL == "" {
-		log.Fatal("DATABASE_URL is required in production")
+		log.Println("DATABASE_URL not set, using local database")
+		databaseURL = "postgresql://postgres:postgres@localhost:5432/sweettake_db?sslmode=disable"
+	} else {
+		log.Println("Using production database")
 	}
 
 	db, err := gorm.Open(postgres.Open(databaseURL), &gorm.Config{})
