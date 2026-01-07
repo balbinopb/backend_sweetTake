@@ -143,7 +143,7 @@ func ForgotPassword(c *gin.Context) {
 	if err := database.DB.Where("email = ?", input.Email).First(&user).Error; err != nil {
 		// SECURITY: do not reveal email existence
 		c.JSON(http.StatusOK, gin.H{
-			"message": "if the email exists, a reset link has been sent",
+			"message": "a reset link has been sent",
 		})
 		return
 	}
@@ -166,13 +166,13 @@ func ForgotPassword(c *gin.Context) {
 	err := utils.SendResetEmail(user.Email, token)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "failed to send reset email",
+			"error": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "if the email exists, a reset link has been sent",
+		"message": "a reset token has been sent to your "+user.Email,
 	})
 }
 
