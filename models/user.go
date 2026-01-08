@@ -5,6 +5,9 @@ import "time"
 type User struct {
 	UserID uint `gorm:"primaryKey" json:"user_id"`
 
+	BloodSugarMetrics []BloodSugarMetric `gorm:"foreignKey:UserID"`
+	Consumptions      []Consumption      `gorm:"foreignKey:UserID"`
+
 	FullName *string `json:"full_name,omitempty"`
 	Email    string  `gorm:"unique;not null" json:"email"`
 	Password string  `json:"-" gorm:"size:255;not null"`

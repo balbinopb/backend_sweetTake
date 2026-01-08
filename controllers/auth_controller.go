@@ -23,9 +23,8 @@ func Register(c *gin.Context) {
 
 	// duplicate check
 	var existing models.User
-	if err := database.DB.Where("email = ? OR username = ?", input.Email, input.FullName).
+	if err := database.DB.Where("email = ? OR full_name = ?", input.Email, input.FullName).
 		First(&existing).Error; err == nil {
-
 		c.JSON(http.StatusConflict, gin.H{"error": "username or email already exists"})
 		return
 	}

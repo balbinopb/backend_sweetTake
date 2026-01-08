@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"sweetake/database"
 	"sweetake/models"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,6 +31,7 @@ func CreateBloodSugarMetric(c *gin.Context) {
 		DateTime:       input.DateTime,
 		BloodSugarData: input.BloodSugarData,
 		Context:        input.Context,
+		CreatedAt:      time.Now(),
 	}
 
 	if err := database.DB.Create(&bloodSugar).Error; err != nil {
@@ -45,10 +47,19 @@ func CreateBloodSugarMetric(c *gin.Context) {
 
 // GET SINGLE BLOOD SUGAR METRIC BY ID
 func GetBloodSugarMetric(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
 	id := c.Param("id")
 	var metric models.BloodSugarMetric
 
-	if err := database.DB.First(&metric, "metric_id = ?", id).Error; err != nil {
+	if err := database.DB.
+		Where("metric_id = ? AND user_id = ?", id, userID).
+		First(&metric).Error; err != nil {
+
 		c.JSON(http.StatusNotFound, gin.H{"error": "metric not found"})
 		return
 	}
