@@ -1,7 +1,0 @@
-package migration
-
-
-
-func test()  {
-	
-}
