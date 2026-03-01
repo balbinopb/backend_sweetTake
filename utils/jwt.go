@@ -10,15 +10,17 @@ import (
 var jwtKey = []byte("jpwjepwj")
 
 type Claims struct {
+	UserID uint   `json:"user_id"`
 	Email string `json:"email"`
 	jwt.RegisteredClaims
 }
 
-func GenerateJWT(email string) (string, error) {
+func GenerateJWT(userID uint, email string) (string, error) {
 	expirationTime := time.Now().Add(1 * time.Hour)
 
 	claims := &Claims{
-		Email: email, 
+		UserID: userID,
+		Email:  email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
@@ -27,6 +29,7 @@ func GenerateJWT(email string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtKey)
 }
+
 
 func ValidateJWT(tokenString string) (*Claims, error) {
 	claims := &Claims{}

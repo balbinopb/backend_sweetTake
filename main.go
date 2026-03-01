@@ -3,13 +3,18 @@ package main
 import (
 	"log"
 	"sweetake/config"
+	"sweetake/database"
 	"sweetake/router"
 )
 
-func main() {
-	// load .env
+func init() {
 	config.LoadEnv()
+	database.ConnectDB()
+}
 
+func main() {
+
+	database.DBMigrate()
 
 	// router
 	r := router.Router()

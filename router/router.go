@@ -16,12 +16,27 @@ func Router() *gin.Engine {
 	// Auth routes tanpa middleware
 	api.POST("/register", controllers.Register)
 	api.POST("/login", controllers.Login)
+	api.POST("/forgot-password", controllers.ForgotPassword)
+	api.POST("/reset-password", controllers.ResetPassword)
 
 	// Protected routes dengan middleware JWT token
 	auth := api.Group("/auth")
 	auth.Use(middleware.JWTAuthMiddleware())
 	{
-		auth.GET("/profile", controllers.Profile)
+		auth.GET("/profile", controllers.GetProfile)
+		auth.PATCH("/profile", controllers.UpdateProfile)
+
+		auth.POST("/consumption", controllers.ConsumptionForm)
+		auth.GET("/consumptions", controllers.GetAllConsumptions)
+		auth.DELETE("/consumptions/:id", controllers.DeleteConsumption)
+		// auth.GET("/consumption/:id", )
+
+		auth.POST("/bloodsugar", controllers.CreateBloodSugarMetric)
+		// auth.GET("/bloodsugar/:id", controllers.GetBloodSugarMetric)
+		auth.GET("/bloodsugars", controllers.GetAllBloodSugarMetrics)
+		auth.DELETE("/bloodsugars/:id", controllers.DeleteBloodSugarMetric)
+
+
 	}
 
 	return r

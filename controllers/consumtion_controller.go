@@ -1,0 +1,99 @@
+package controllers
+
+import (
+	"net/http"
+	"sweetake/database"
+	"sweetake/models"
+
+	"github.com/gin-gonic/gin"
+)
+
+func ConsumptionForm(c *gin.Context) {
+	var input models.ConsumptionRequest
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	consumption := models.Consumption{
+		UserID:    userID.(uint),
+		DateTime:  input.DateTime,
+		Type:      input.Type,
+		Amount:    input.Amount,
+		SugarData: input.SugarData,
+		Context:   input.Context,
+	}
+
+	if err := database.DB.Create(&consumption).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create consumption"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "consumption recorded successfully",
+	})
+}
+
+func GetAllConsumptions(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	var consumptions []models.Consumption
+
+	if err := database.DB.
+		Where("user_id = ?", userID).
+		Order("date_time DESC").
+		Find(&consumptions).Error; err != nil {
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch consumptions"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": consumptions,
+	})
+}
+
+func DeleteConsumption(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	id := c.Param("id")
+
+	var consumption models.Consumption
+
+	if err := database.DB.
+		Where("consumption_id = ? AND user_id = ?", id, userID).
+		First(&consumption).Error; err != nil {
+
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "consumption not found",
+		})
+		return
+	}
+
+	if err := database.DB.Delete(&consumption).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to delete consumption",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "consumption deleted successfully",
+	})
+}
+
