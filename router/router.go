@@ -28,14 +28,15 @@ func Router() *gin.Engine {
 
 		auth.POST("/consumption", controllers.ConsumptionForm)
 		auth.GET("/consumptions", controllers.GetAllConsumptions)
+		auth.PATCH("/consumptions/:id", controllers.UpdateConsumption)
 		auth.DELETE("/consumptions/:id", controllers.DeleteConsumption)
 		// auth.GET("/consumption/:id", )
 
 		auth.POST("/bloodsugar", controllers.CreateBloodSugarMetric)
 		// auth.GET("/bloodsugar/:id", controllers.GetBloodSugarMetric)
 		auth.GET("/bloodsugars", controllers.GetAllBloodSugarMetrics)
+		auth.PATCH("/bloodsugars/:id", controllers.UpdateBloodSugarMetric)
 		auth.DELETE("/bloodsugars/:id", controllers.DeleteBloodSugarMetric)
-
 
 	}
 

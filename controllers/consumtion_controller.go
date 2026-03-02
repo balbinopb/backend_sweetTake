@@ -97,3 +97,42 @@ func DeleteConsumption(c *gin.Context) {
 	})
 }
 
+func UpdateConsumption(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	id := c.Param("id")
+
+	var consumption models.Consumption
+	if err := database.DB.
+		Where("consumption_id = ? AND user_id = ?", id, userID).
+		First(&consumption).Error; err != nil {
+
+		c.JSON(http.StatusNotFound, gin.H{"error": "consumption not found"})
+		return
+	}
+
+	var input models.ConsumptionRequest
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	consumption.DateTime = input.DateTime
+	consumption.Type = input.Type
+	consumption.Amount = input.Amount
+	consumption.SugarData = input.SugarData
+	consumption.Context = input.Context
+
+	if err := database.DB.Save(&consumption).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update consumption"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "consumption updated successfully",
+	})
+}
